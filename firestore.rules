@@ -1,0 +1,192 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Auth UID)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - name: string
+    //   - displayName: string
+    //   - photoURL: string
+    //   - role: string (required, 'admin' or 'client')
+    //   - createdAt: timestamp
+    //
+    // Collection: scans
+    // Document ID: scanId (auto-generated)
+    // Fields:
+    //   - userId: string (required, matches Auth UID)
+    //   - cropName: string (required)
+    //   - diseaseName: string (required)
+    //   - confidence: number
+    //   - solutionEn: string
+    //   - solutionHi: string
+    //   - imageUrl: string
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "irfaanmansoori100@gmail.com" && request.auth.token.email_verified == true)
+        );
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*") || url.matches("^data:image/.*;base64,.*"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'name', 'role', 'createdAt']) &&
+             data.uid is string &&
+             data.email is string && isValidEmail(data.email) &&
+             data.name is string &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 100)) &&
+             (!('bio' in data) || (data.bio is string && data.bio.size() <= 1000)) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp) &&
+             data.role in ['admin', 'client'] &&
+             data.createdAt is timestamp &&
+             (!('photoURL' in data) || isValidUrl(data.photoURL));
+    }
+
+    function isValidScan(data) {
+      return data.keys().hasAll(['userId', 'cropName', 'diseaseName', 'timestamp']) &&
+             data.userId == request.auth.uid &&
+             data.cropName is string && data.cropName.size() > 0 && data.cropName.size() < 100 &&
+             data.diseaseName is string && data.diseaseName.size() > 0 && data.diseaseName.size() < 100 &&
+             data.timestamp is timestamp &&
+             (!('imageUrl' in data) || isValidUrl(data.imageUrl)) &&
+             (!('confidence' in data) || data.confidence is number);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Users can only read their own profile (PII protection)
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allow creation if the user is the owner and role is 'client' (unless admin)
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && 
+                    (request.resource.data.role == 'client' || isAdmin());
+      
+      // Allow updates if owner, but prevent role escalation
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                    (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /scans/{scanId} {
+      // Users can only read their own scans
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Users can create their own scans
+      allow create: if isAuthenticated() && isValidScan(request.resource.data);
+      
+      // Users can delete their own scans
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Scans are immutable for now
+      allow update: if false;
+    }
+
+    match /support_tickets/{ticketId} {
+      // Only admins can list/read all tickets
+      allow read: if isAdmin();
+      
+      // Authenticated users can create tickets
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.name is string &&
+                    request.resource.data.email is string &&
+                    request.resource.data.message is string &&
+                    request.resource.data.message.size() < 5000 &&
+                    request.resource.data.createdAt is timestamp;
+      
+      // Only admins can update/delete tickets
+      allow update, delete: if isAdmin();
+    }
+
+    match /search_history/{searchId} {
+      // Users can only read their own search history
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Users can create their own search history
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.query is string &&
+                    request.resource.data.query.size() > 0 &&
+                    request.resource.data.query.size() < 1000 &&
+                    request.resource.data.response is string &&
+                    request.resource.data.timestamp is timestamp;
+      
+      // History is immutable
+      allow update, delete: if isAdmin();
+    }
+
+    match /consultations/{consultationId} {
+      // Users can only read their own consultation messages
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Users can create their own consultation messages
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.text is string &&
+                    request.resource.data.text.size() > 0 &&
+                    request.resource.data.text.size() < 10000 &&
+                    (request.resource.data.sender == 'Agro-Nexus AI' || isValidEmail(request.resource.data.sender)) &&
+                    request.resource.data.timestamp is timestamp;
+      
+      // Consultations are immutable
+      allow update, delete: if isAdmin();
+    }
+
+    match /mandi_history/{historyId} {
+      // Mandi history is publicly readable for trends
+      allow read: if true;
+      
+      // Only authenticated users can contribute to history (when they fetch new data)
+      allow create: if isAuthenticated() &&
+                    request.resource.data.state is string &&
+                    request.resource.data.market is string &&
+                    request.resource.data.commodity is string &&
+                    request.resource.data.modal_price is number &&
+                    request.resource.data.timestamp is timestamp;
+      
+      // History is immutable
+      allow update, delete: if isAdmin();
+    }
+    
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

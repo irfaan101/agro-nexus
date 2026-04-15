@@ -1,0 +1,134 @@
+[
+  {
+    "state": "Madhya Pradesh",
+    "district": "Satna",
+    "market": "Satna",
+    "commodity": "Wheat",
+    "variety": "Other",
+    "arrival_date": "04/04/2026",
+    "min_price": "2100",
+    "max_price": "2450",
+    "modal_price": "2300"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Satna",
+    "market": "Satna",
+    "commodity": "Rice",
+    "variety": "Common",
+    "arrival_date": "04/04/2026",
+    "min_price": "1800",
+    "max_price": "2200",
+    "modal_price": "2000"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Satna",
+    "market": "Satna",
+    "commodity": "Chana",
+    "variety": "Desi",
+    "arrival_date": "04/04/2026",
+    "min_price": "4500",
+    "max_price": "5200",
+    "modal_price": "4900"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal",
+    "market": "Bhopal",
+    "commodity": "Wheat",
+    "variety": "Lokwan",
+    "arrival_date": "04/04/2026",
+    "min_price": "2200",
+    "max_price": "2600",
+    "modal_price": "2450"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal",
+    "market": "Bhopal",
+    "commodity": "Soyabean",
+    "variety": "Yellow",
+    "arrival_date": "04/04/2026",
+    "min_price": "4200",
+    "max_price": "4800",
+    "modal_price": "4550"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal",
+    "market": "Bhopal",
+    "commodity": "Onion",
+    "variety": "Red",
+    "arrival_date": "04/04/2026",
+    "min_price": "1200",
+    "max_price": "1800",
+    "modal_price": "1500"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Satna",
+    "market": "Satna",
+    "commodity": "Mustard",
+    "variety": "Other",
+    "arrival_date": "04/04/2026",
+    "min_price": "5000",
+    "max_price": "5800",
+    "modal_price": "5400"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal",
+    "market": "Bhopal",
+    "commodity": "Potato",
+    "variety": "Other",
+    "arrival_date": "04/04/2026",
+    "min_price": "800",
+    "max_price": "1200",
+    "modal_price": "1000"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Satna",
+    "market": "Satna",
+    "commodity": "Tomato",
+    "variety": "Local",
+    "arrival_date": "04/04/2026",
+    "min_price": "1500",
+    "max_price": "2500",
+    "modal_price": "2000"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal",
+    "market": "Bhopal",
+    "commodity": "Garlic",
+    "variety": "Other",
+    "arrival_date": "04/04/2026",
+    "min_price": "6000",
+    "max_price": "9000",
+    "modal_price": "7500"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Satna",
+    "market": "Satna",
+    "commodity": "Moong",
+    "variety": "Green",
+    "arrival_date": "04/04/2026",
+    "min_price": "6500",
+    "max_price": "7800",
+    "modal_price": "7200"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "district": "Bhopal",
+    "market": "Bhopal",
+    "commodity": "Maize",
+    "variety": "Other",
+    "arrival_date": "04/04/2026",
+    "min_price": "1800",
+    "max_price": "2100",
+    "modal_price": "1950"
+  }
+]

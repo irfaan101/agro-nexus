@@ -1,0 +1,5 @@
+{
+  "name": "Agro-Nexus",
+  "description": "AI-Powered Crop Disease Detection and Mandi Analytics System for farmers.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}

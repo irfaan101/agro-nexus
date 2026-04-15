@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and roles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "name": { "type": "string", "description": "User full name" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "photoURL": { "type": "string", "description": "User profile picture URL" },
+        "location": { "type": "string", "description": "User location (City, State)" },
+        "bio": { "type": "string", "description": "User bio or farming experience" },
+        "role": { "type": "string", "enum": ["admin", "client"], "description": "User role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Scan": {
+      "title": "Crop Scan",
+      "description": "Stores crop disease scan results.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who performed the scan" },
+        "cropName": { "type": "string", "description": "Name of the crop" },
+        "diseaseName": { "type": "string", "description": "Detected disease name" },
+        "confidence": { "type": "number", "description": "Confidence score of the detection" },
+        "solutionEn": { "type": "string", "description": "Solution in English" },
+        "solutionHi": { "type": "string", "description": "Solution in Hindi" },
+        "imageUrl": { "type": "string", "description": "URL of the uploaded image" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Scan timestamp" }
+      },
+      "required": ["userId", "cropName", "diseaseName", "timestamp"]
+    },
+    "SupportTicket": {
+      "title": "Support Ticket",
+      "description": "Stores user support requests and messages.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who submitted the ticket" },
+        "name": { "type": "string", "description": "User's name" },
+        "email": { "type": "string", "format": "email", "description": "User's email" },
+        "message": { "type": "string", "description": "Support message content" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Submission timestamp" },
+        "status": { "type": "string", "enum": ["open", "in-progress", "resolved"], "description": "Ticket status" }
+      },
+      "required": ["userId", "name", "email", "message", "createdAt"]
+    },
+    "SearchHistory": {
+      "title": "Search History",
+      "description": "Stores user smart search queries and AI responses.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user" },
+        "query": { "type": "string", "description": "User's search query" },
+        "response": { "type": "string", "description": "AI generated response" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Timestamp of the search" }
+      },
+      "required": ["userId", "query", "response", "timestamp"]
+    },
+    "Consultation": {
+      "title": "Expert Consultation",
+      "description": "Stores professional AI Agricultural consultation messages.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user" },
+        "text": { "type": "string", "description": "Consultation content" },
+        "sender": { "type": "string", "description": "Sender of the message (User Email or 'Agro-Nexus AI')" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Message timestamp" }
+      },
+      "required": ["userId", "text", "sender", "timestamp"]
+    },
+    "MandiHistory": {
+      "title": "Mandi Price History",
+      "description": "Stores historical mandi prices for trend analysis.",
+      "type": "object",
+      "properties": {
+        "state": { "type": "string" },
+        "district": { "type": "string" },
+        "market": { "type": "string" },
+        "commodity": { "type": "string" },
+        "variety": { "type": "string" },
+        "min_price": { "type": "number" },
+        "max_price": { "type": "number" },
+        "modal_price": { "type": "number" },
+        "arrival_date": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["state", "market", "commodity", "modal_price", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile collection"
+    },
+    "/scans/{scanId}": {
+      "schema": "Scan",
+      "description": "Collection of crop scans"
+    },
+    "/support_tickets/{ticketId}": {
+      "schema": "SupportTicket",
+      "description": "Collection of support requests"
+    },
+    "/search_history/{searchId}": {
+      "schema": "SearchHistory",
+      "description": "Collection of smart search history"
+    },
+    "/consultations/{consultationId}": {
+      "schema": "Consultation",
+      "description": "Collection of professional agricultural consultation messages"
+    },
+    "/mandi_history/{historyId}": {
+      "schema": "MandiHistory",
+      "description": "Collection of historical mandi prices"
+    }
+  }
+}

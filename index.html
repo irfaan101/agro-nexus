@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agro-Nexus : Smart Farming 🌾</title>
+    <!-- <link rel="icon" type="image/png" href="favicon.png" /> -->
+     <link rel="icon" type="image/png" href="logo.png" sizes="180x180" />
+    <script>
+      // Fix for "Cannot set property fetch of #<Window> which has only a getter"
+      // This happens in some sandboxed environments where window.fetch is not configurable.
+      (function() {
+        try {
+          const descriptor = Object.getOwnPropertyDescriptor(window, 'fetch');
+          
+          // If it's already on the window object
+          if (descriptor) {
+            if (descriptor.configurable && (!descriptor.writable || descriptor.get)) {
+              const originalFetch = window.fetch;
+              Object.defineProperty(window, 'fetch', {
+                value: originalFetch,
+                writable: true,
+                configurable: true,
+                enumerable: true
+              });
+            }
+          } else {
+            // It's likely on Window.prototype. Let's try to define it on window if possible.
+            const protoDescriptor = Object.getOwnPropertyDescriptor(Window.prototype, 'fetch');
+            if (protoDescriptor && protoDescriptor.configurable) {
+              const originalFetch = window.fetch;
+              try {
+                Object.defineProperty(window, 'fetch', {
+                  value: originalFetch,
+                  writable: true,
+                  configurable: true,
+                  enumerable: true
+                });
+              } catch (e) {
+                console.warn('Could not redefine window.fetch');
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Failed to patch window.fetch:', e);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
