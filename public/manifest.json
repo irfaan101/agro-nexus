@@ -1,0 +1,16 @@
+{
+  "short_name": "AgroNexus",
+  "name": "Agro-Nexus: Smart Farming 🌾",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#059669",
+  "background_color": "#ffffff"
+}

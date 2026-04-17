@@ -110,8 +110,8 @@ const Weather: React.FC = () => {
             </span>
           </div>
 
-          <h1 className="text-7xl font-black text-white tracking-tight mb-2">
-            Weather <span className="text-emerald-400">Intelligence</span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tight mb-2 leading-tight">
+                  Weather <span className="text-emerald-400">Intelligence</span>
           </h1>
           <p className="text-white/60 font-medium max-w-xl">
             Hyper-local Environmental Monitoring for an Advanced Weather Intelligence across India.

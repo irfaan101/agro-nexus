@@ -620,7 +620,8 @@ const Profile: React.FC = () => {
 
             {isEditing ? (
               <form onSubmit={handleUpdate} className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Information Grid */}
+                <div className="flex flex-col gap-6 md:gap-8">
                   <div className="space-y-2">
                     <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
                     <div className="relative">
@@ -633,36 +634,41 @@ const Profile: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Soil Type</label>
-                    <div className="relative">
-                      <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <select 
-                        value={editForm.soilType || ''}
-                        onChange={(e) => setEditForm({ ...editForm, soilType: e.target.value })}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-black outline-none font-bold text-black appearance-none"
-                      >
-                        <option value="">Select Soil Type</option>
-                        {SOIL_TYPES.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </select>
+                  
+                  {/* Soil Type & Land Area Section */}
+                  <div className="flex flex-col md:flex-row gap-4 w-full">
+                    <div className="flex-1 space-y-2">
+                      <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Soil Type</label>
+                      <div className="relative">
+                        <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <select 
+                          value={editForm.soilType || ''}
+                          onChange={(e) => setEditForm({ ...editForm, soilType: e.target.value })}
+                          className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-black outline-none font-bold text-black appearance-none"
+                        >
+                          <option value="">Select Soil Type</option>
+                          {SOIL_TYPES.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Land Area (Acres)</label>
+                      <div className="relative">
+                        <Maximize className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input 
+                          type="text"
+                          value={editForm.landArea || ''}
+                          onChange={(e) => setEditForm({ ...editForm, landArea: e.target.value })}
+                          placeholder="e.g. 5.5"
+                          className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-black outline-none font-bold text-black"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Land Area (Acres)</label>
-                    <div className="relative">
-                      <Maximize className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input 
-                        type="text"
-                        value={editForm.landArea || ''}
-                        onChange={(e) => setEditForm({ ...editForm, landArea: e.target.value })}
-                        placeholder="e.g. 5.5"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-black outline-none font-bold text-black"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
+
+                  <div className="w-full space-y-2">
                     <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Crops</label>
                     <div className="relative">
                       <Sprout className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -675,7 +681,8 @@ const Profile: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2 col-span-2">
+
+                  <div className="w-full space-y-2">
                     <label className="text-[14px] font-black text-slate-500 uppercase tracking-widest ml-1">Email (Read Only)</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-600/50" />
@@ -700,11 +707,11 @@ const Profile: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex flex-col md:flex-row gap-3 w-full pt-6">
                   <button 
                     type="submit"
                     disabled={updateLoading}
-                    className="flex-1 py-4 bg-[#059669] text-white rounded-full font-black text-[19px] shadow-lg shadow-emerald-100 hover:bg-[#047857] hover:scale-105 transition-all flex items-center justify-center gap-2"
+                    className="w-full md:w-auto md:px-12 py-4 bg-[#059669] text-white rounded-full font-black text-[19px] shadow-lg shadow-emerald-100 hover:bg-[#047857] hover:scale-105 transition-all flex items-center justify-center gap-2 order-1"
                   >
                     {updateLoading ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Save className="w-5 h-5" /> Save Changes</>}
                   </button>
@@ -714,7 +721,7 @@ const Profile: React.FC = () => {
                       setIsEditing(false);
                       setEditForm(profile);
                     }}
-                    className="px-8 py-4 bg-gray-50 text-black rounded-full font-black text-[19px] hover:bg-gray-100 hover:scale-105 transition-all flex items-center justify-center gap-2 border border-gray-100"
+                    className="w-full md:w-auto md:px-12 py-4 bg-gray-50 text-black rounded-full font-black text-[19px] hover:bg-gray-100 hover:scale-105 transition-all flex items-center justify-center gap-2 border border-gray-100 order-2"
                   >
                     <X className="w-5 h-5" /> Cancel
                   </button>
