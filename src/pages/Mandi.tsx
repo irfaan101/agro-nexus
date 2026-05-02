@@ -18,7 +18,9 @@ import {
   Info,
   Table as TableIcon,
   LayoutGrid,
-  ArrowUpDown
+  ArrowUpDown,
+  Sprout,
+  Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -78,6 +80,16 @@ const INDIAN_STATES = [
   "Uttarakhand",
   "West Bengal"
 ].sort();
+
+const SUGGESTED_CROPS = [
+  { en: 'Wheat', hi: 'गेहूँ' },
+  { en: 'Paddy', hi: 'धान' },
+  { en: 'Mustard', hi: 'सरसों' },
+  { en: 'Gram', hi: 'चना' },
+  { en: 'Soyabean', hi: 'सोयाबीन' },
+  { en: 'Maize', hi: 'मक्का' },
+  { en: 'Cotton', hi: 'कपास' }
+];
 
 // Custom Select Component for Extreme Visibility
 const CustomSelect: React.FC<{
@@ -178,6 +190,7 @@ const Mandi: React.FC = () => {
   const [trendRange, setTrendRange] = useState<'7d' | '1m'>('7d');
   const [isOffline, setIsOffline] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   // Table search/filter
   const [tableFilter, setTableFilter] = useState('');
@@ -193,20 +206,40 @@ const Mandi: React.FC = () => {
 
   // Filters
   const [selectedState, setSelectedState] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedMarket, setSelectedMarket] = useState('');
-  const [states, setStates] = useState<string[]>(INDIAN_STATES);
-  const [districts, setDistricts] = useState<string[]>([]);
-  const [markets, setMarkets] = useState<string[]>([]);
   const [message, setMessage] = useState<{ type: 'info' | 'success' | 'error', text: string } | null>(null);
   const [apiError, setApiError] = useState(false);
   
   // Metadata for dropdowns
-  const [allCommodities, setAllCommodities] = useState<string[]>([]);
+  const [mandiMetadata, setMandiMetadata] = useState<MandiRecord[]>([]);
   const [selectedCommodity, setSelectedCommodity] = useState('');
 
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [trendCrops, setTrendCrops] = useState<string[]>([]);
+
+  // Memoized options for cascading filters
+  const stateOptions = useMemo(() => {
+    return Array.from(new Set(mandiMetadata.map(r => r.state))).filter(Boolean).sort();
+  }, [mandiMetadata]);
+
+  const marketOptions = useMemo(() => {
+    let subset = mandiMetadata;
+    if (selectedState) {
+      subset = subset.filter(r => r.state === selectedState);
+    }
+    return Array.from(new Set(subset.map(r => r.market))).filter(Boolean).sort();
+  }, [mandiMetadata, selectedState]);
+
+  const commodityOptions = useMemo(() => {
+    let subset = mandiMetadata;
+    if (selectedState) {
+      subset = subset.filter(r => r.state === selectedState);
+    }
+    if (selectedMarket) {
+      subset = subset.filter(r => r.market === selectedMarket);
+    }
+    return Array.from(new Set(subset.map(r => r.commodity))).filter(Boolean).sort();
+  }, [mandiMetadata, selectedState, selectedMarket]);
 
   // Fetch user profile for location
   useEffect(() => {
@@ -243,6 +276,10 @@ const Mandi: React.FC = () => {
     }
     return data;
   };
+
+  useEffect(() => {
+    setImageErrors({});
+  }, [mandiData]);
 
   const loadMandiData = useCallback(async (isInitial = false) => {
     setLoading(true);
@@ -301,20 +338,18 @@ const Mandi: React.FC = () => {
 
         setHistoricalData(generateHistoricalData(data.records, uniqueCrops, trendRange));
 
-        // Update metadata if it's the initial load or if we want to refresh dropdowns
-        if (isInitial) {
-          const uniqueCommodities = Array.from(new Set(data.records.map(r => r.commodity))).sort();
-          setAllCommodities(uniqueCommodities);
-        }
-
-        // Always update markets based on current data if a state is selected
-        if (selectedState) {
-          const stateMarkets = Array.from(new Set(data.records.filter(r => r.state === selectedState).map(r => r.market))).sort();
-          setMarkets(stateMarkets);
-        } else {
-          const allMarkets = Array.from(new Set(data.records.map(r => r.market))).sort();
-          setMarkets(allMarkets);
-        }
+        // Update metadata pool with current results to keep filters fresh
+        setMandiMetadata(prev => {
+          const combined = [...prev, ...data.records];
+          // Keep unique records by state+market+commodity
+          const seen = new Set();
+          return combined.filter(record => {
+            const key = `${record.state}-${record.market}-${record.commodity}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          }).slice(0, 2000); // Prevent state from bloating too much
+        });
 
       } else {
         if (!isInitial) {
@@ -337,15 +372,25 @@ const Mandi: React.FC = () => {
     }
   }, [selectedState, selectedMarket, selectedCommodity, trendRange, user, selectedTrendCrop]);
 
+  // Task 1: Auto-trigger API call when filters change for "instant" updates
+  useEffect(() => {
+    const triggerFetch = async () => {
+      // We only auto-fetch if at least one filter is selected to avoid massive initial loads
+      // unless it's been manually searched once.
+      if (selectedState || selectedMarket || selectedCommodity) {
+        await loadMandiData(false);
+      }
+    };
+    
+    triggerFetch();
+  }, [selectedState, selectedMarket, selectedCommodity, loadMandiData]);
+
   const fetchMetadata = useCallback(async () => {
     try {
-      // Fetch a large sample to populate dropdowns
-      const data = await fetchMandiPrices(0, 500);
+      // Fetch a larger sample to populate dropdowns with unique values
+      const data = await fetchMandiPrices(0, 1000);
       if (data.records) {
-        const uniqueCommodities = Array.from(new Set(data.records.map(r => r.commodity))).sort();
-        setAllCommodities(uniqueCommodities);
-        const uniqueMarkets = Array.from(new Set(data.records.map(r => r.market))).sort();
-        setMarkets(uniqueMarkets);
+        setMandiMetadata(data.records);
       }
     } catch (e) {
       console.error("Error fetching metadata:", e);
@@ -354,9 +399,9 @@ const Mandi: React.FC = () => {
 
   useEffect(() => {
     fetchMetadata();
-    // Removed initial load to support "isSearched" logic
+    // Re-enable initial load for better UX, or keep it off if isSearched is strictly desired
     setLoading(false);
-  }, []); // Run once on mount
+  }, [fetchMetadata]); // Added fetchMetadata to dependencies
 
   const formatDate = (dateStr: string) => {
     try {
@@ -390,6 +435,11 @@ const Mandi: React.FC = () => {
 
   const filteredCommodities = mandiData
     .filter((item) => {
+      // Strict filters for State, Market, and Commodity
+      if (selectedState && item.state !== selectedState) return false;
+      if (selectedMarket && item.market !== selectedMarket) return false;
+      if (selectedCommodity && item.commodity !== selectedCommodity) return false;
+
       const searchLower = search.toLowerCase();
       // Bilingual search support
       return (
@@ -428,10 +478,10 @@ const Mandi: React.FC = () => {
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+      .slice(0, 10);
   }, [mandiData]);
 
-  const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const PIE_COLORS = ['#E11D48', '#2563EB', '#D97706', '#059669', '#7C3AED', '#DB2777', '#4F46E5', '#0891B2', '#EA580C'];
 
   // Trend Color Logic
   const trendColor = useMemo(() => {
@@ -458,7 +508,7 @@ const Mandi: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-[#f8fafc] font-medium">
       {/* Premium Header */}
-      <div className="bg-emerald-900 pt-12 pb-24 px-4 md:px-6 relative">
+      <div className="bg-emerald-900 pt-14 pb-28 px-4 md:px-6 relative shadow-2xl">
         <div className="absolute inset-0 opacity-10 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-400 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
@@ -492,8 +542,12 @@ const Mandi: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-center gap-3 mb-4"
               >
-                <div className="px-4 py-1.5 rounded-full bg-emerald-400/20 border border-emerald-400/30 backdrop-blur-md">
-                  <span className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]">Live Market Feed</span>
+                <div className="px-5 py-2.5 rounded-full bg-amber-100 border border-amber-200 flex items-center gap-2.5 shadow-[0_0_15px_rgba(251,191,36,0.4)]">
+                  <div className="relative flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div className="absolute w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-40"></div>
+                  </div>
+                  <span className="text-amber-900 text-[11px] font-black uppercase tracking-[0.3em]">Live Market Feed</span>
                 </div>
                 {isOffline && (
                   <div className="px-4 py-1.5 rounded-full bg-amber-400/20 border border-amber-400/30 backdrop-blur-md flex items-center gap-2">
@@ -551,8 +605,9 @@ const Mandi: React.FC = () => {
                   onChange={(val) => {
                     setSelectedState(val);
                     setSelectedMarket('');
+                    setSelectedCommodity('');
                   }}
-                  options={states}
+                  options={stateOptions}
                   placeholder="All States"
                   icon={<Filter className="w-4 h-4" />}
                 />
@@ -561,8 +616,11 @@ const Mandi: React.FC = () => {
               <div className="flex-1 w-full">
                 <CustomSelect 
                   value={selectedMarket}
-                  onChange={setSelectedMarket}
-                  options={markets}
+                  onChange={(val) => {
+                    setSelectedMarket(val);
+                    setSelectedCommodity('');
+                  }}
+                  options={marketOptions}
                   placeholder="All Markets"
                   icon={<MapPin className="w-4 h-4" />}
                 />
@@ -572,7 +630,7 @@ const Mandi: React.FC = () => {
                 <CustomSelect 
                   value={selectedCommodity}
                   onChange={setSelectedCommodity}
-                  options={allCommodities}
+                  options={commodityOptions}
                   placeholder="All Commodities"
                   icon={<LayoutGrid className="w-4 h-4" />}
                 />
@@ -590,7 +648,7 @@ const Mandi: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-6 mt-10 pb-20">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 mt-10 pb-20">
         {/* Price Trends Section */}
         <AnimatePresence>
           {showChart && (
@@ -600,34 +658,39 @@ const Mandi: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               className="mb-16 overflow-hidden"
             >
-              <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-emerald-100 shadow-xl space-y-12">
+              <div className="bg-white rounded-[2.5rem] p-6 md:p-12 border border-emerald-100 shadow-xl space-y-12">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                   <div>
-                    <h2 className="text-3xl font-black text-[#1a1a1a] tracking-tight">Market <span className="text-emerald-600">Trends</span></h2>
-                    <p className="text-sm font-bold text-[#1a1a1a]/40 uppercase tracking-widest mt-1">Historical Price Analysis</p>
+                    <h2 className="text-2xl md:text-3xl font-black text-[#1a1a1a] tracking-tight">Market <span className="text-emerald-600">Trends</span></h2>
+                    <p className="text-xs md:text-sm font-bold text-[#1a1a1a]/40 uppercase tracking-widest mt-1">Historical Price Analysis</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {trendCrops.map((crop) => (
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    {SUGGESTED_CROPS.map((crop) => (
                       <button
-                        key={crop}
-                        onClick={() => setSelectedTrendCrop(crop)}
-                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                          selectedTrendCrop === crop 
-                            ? 'bg-[#004d40] text-white shadow-xl scale-105' 
-                            : 'bg-emerald-50 text-[#1a1a1a]/40 hover:bg-emerald-100'
+                        key={crop.en}
+                        onClick={() => {
+                          setSelectedCommodity(crop.en);
+                          setSearch(crop.en);
+                          setSelectedTrendCrop(crop.en);
+                        }}
+                        className={`px-4 md:px-6 py-2 md:py-2.5 rounded-full border transition-all text-[10px] md:text-xs font-bold flex items-center gap-2 ${
+                          selectedCommodity === crop.en || search === crop.en || selectedTrendCrop === crop.en
+                            ? 'bg-[#004d40] border-[#004d40] text-white shadow-xl'
+                            : 'bg-emerald-50 border-emerald-100 text-[#1a1a1a]/40 hover:bg-emerald-100'
                         }`}
                       >
-                        {crop}
+                        <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${selectedCommodity === crop.en || selectedTrendCrop === crop.en ? 'bg-emerald-400' : 'bg-emerald-200'}`}></div>
+                        {crop.hi} ({crop.en})
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="h-[250px] md:h-[400px] w-full bg-white rounded-[2rem] p-4 md:p-8 border border-emerald-50 shadow-sm">
-                    <p className="text-[14px] font-black text-[#000000] uppercase tracking-widest mb-6">Price Trend (7 Days)</p>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={historicalData}>
+                  <div className="min-h-[400px] w-full bg-white rounded-[2rem] p-4 md:p-10 border border-emerald-50 shadow-sm px-2 md:px-10">
+                    <p className="text-[12px] md:text-[14px] font-black text-[#000000] uppercase tracking-widest mb-6">Price Trend (7 Days)</p>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <AreaChart data={historicalData} margin={{ bottom: 40, left: 0, right: 0, top: 0 }}>
                         <defs>
                           <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={trendColor} stopOpacity={0.3}/>
@@ -639,14 +702,18 @@ const Mandi: React.FC = () => {
                           dataKey="date" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#000000', fontSize: 12, fontWeight: 700 }}
-                          dy={15}
+                          tick={{ fill: '#000000', fontSize: 10, fontWeight: 700 }}
+                          dy={10}
+                          angle={-45}
+                          textAnchor="end"
+                          height={70}
+                          interval="preserveStartEnd"
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fill: '#000000', fontSize: 12, fontWeight: 700 }}
-                          dx={-15}
+                          tick={{ fill: '#000000', fontSize: 10, fontWeight: 700 }}
+                          dx={-10}
                         />
                         <Tooltip 
                           contentStyle={{ 
@@ -657,8 +724,8 @@ const Mandi: React.FC = () => {
                             padding: '16px'
                           }}
                           formatter={(value: any) => [`₹${value} / Quintal`, selectedTrendCrop]}
-                          itemStyle={{ fontWeight: 800, fontSize: '16px', color: '#4ade80' }}
-                          labelStyle={{ fontWeight: 700, marginBottom: '4px', color: '#ffffff', fontSize: '14px' }}
+                          itemStyle={{ fontWeight: 800, fontSize: '14px', color: '#4ade80' }}
+                          labelStyle={{ fontWeight: 700, marginBottom: '4px', color: '#ffffff', fontSize: '12px' }}
                         />
                         <Area 
                           type="monotone" 
@@ -673,25 +740,25 @@ const Mandi: React.FC = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="h-[250px] md:h-[400px] w-full bg-white rounded-[2rem] p-4 md:p-8 border border-emerald-50 shadow-sm">
-                    <p className="text-[14px] font-black text-[#000000] uppercase tracking-widest mb-6">Top 5 Mandis (Modal Price)</p>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={barChartData} layout="vertical">
+                  <div className="min-h-[400px] w-full bg-white rounded-[2rem] p-4 md:p-10 border border-emerald-50 shadow-sm px-2 md:px-10">
+                    <p className="text-[12px] md:text-[14px] font-black text-[#000000] uppercase tracking-widest mb-6">Top 5 Mandis (Modal Price)</p>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <BarChart data={barChartData} layout="vertical" margin={{ left: 10, right: 30 }}>
                         <XAxis type="number" hide />
                         <YAxis 
                           dataKey="market" 
                           type="category" 
                           axisLine={false} 
                           tickLine={false}
-                          width={80}
-                          tick={{ fill: '#000000', fontSize: 12, fontWeight: 700 }}
+                          width={90}
+                          tick={{ fill: '#000000', fontSize: 9, fontWeight: 700 }}
                         />
                         <Tooltip 
                           cursor={{ fill: 'transparent' }}
                           contentStyle={{ backgroundColor: '#1a1a1a', borderRadius: '16px', border: 'none' }}
                           formatter={(value: any) => [`₹${value} / Quintal`, 'Modal Price']}
-                          itemStyle={{ color: '#4ade80', fontWeight: 800, fontSize: '16px' }}
-                          labelStyle={{ color: '#ffffff', fontWeight: 700, fontSize: '14px' }}
+                          itemStyle={{ color: '#4ade80', fontWeight: 800, fontSize: '14px' }}
+                          labelStyle={{ color: '#ffffff', fontWeight: 700, fontSize: '12px' }}
                         />
                         <Bar 
                           dataKey="price" 
@@ -705,42 +772,66 @@ const Mandi: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-1 h-[250px] md:h-[300px] bg-white rounded-[2rem] p-8 border border-emerald-50 shadow-sm">
-                    <p className="text-[14px] font-black text-[#000000] uppercase tracking-widest mb-2">Market Volume</p>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieChartData}
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                          animationDuration={1500}
-                        >
-                          {pieChartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend verticalAlign="bottom" height={36}/>
-                      </PieChart>
-                    </ResponsiveContainer>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  <div className="lg:col-span-3 min-h-[400px] bg-white rounded-[2rem] p-6 md:p-8 border border-emerald-50 shadow-sm flex flex-col px-2 md:px-8">
+                    <p className="text-[12px] md:text-[14px] font-black text-[#000000] uppercase tracking-widest mb-6 px-4 md:px-0">Market Volume</p>
+                    <div className="flex-1 flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={380}>
+                        <PieChart>
+                          <Pie
+                            data={pieChartData}
+                            cx="50%"
+                            cy="35%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                            animationDuration={1500}
+                          >
+                            {pieChartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#1a1a1a', borderRadius: '16px', border: 'none' }}
+                            itemStyle={{ color: '#10b981', fontWeight: 800 }}
+                            labelStyle={{ color: '#ffffff', fontWeight: 700 }}
+                          />
+                          <Legend 
+                            verticalAlign="bottom" 
+                            align="center"
+                            iconType="circle"
+                            layout="horizontal"
+                            wrapperStyle={{ 
+                              paddingTop: '40px',
+                              width: '100%',
+                              display: 'flex',
+                              justifyContent: 'center'
+                            }}
+                            formatter={(value) => (
+                              <span className="text-[9px] md:text-[11px] font-bold text-black uppercase tracking-wider inline-block max-w-[80px] md:max-w-none truncate align-middle">
+                                {value}
+                              </span>
+                            )}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                   
-                  <div className="lg:col-span-2 flex items-center justify-center p-10 bg-[#004d40] rounded-[2.5rem] relative overflow-hidden group shadow-lg">
+                  <div className="lg:col-span-2 flex items-center justify-center p-8 md:p-12 bg-[#004d40] rounded-[2.5rem] relative overflow-hidden group shadow-lg mb-8 md:mb-0 mx-4 md:mx-0">
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                    <div className="relative z-10 text-center space-y-4">
-                      <div className="w-16 h-16 bg-emerald-400/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                        <TrendingUp className="w-8 h-8 text-emerald-400" />
+                    <div className="relative z-10 text-center space-y-4 md:space-y-6 w-full">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-emerald-400/20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-8 group-hover:scale-110 transition-transform">
+                        <TrendingUp className="w-8 h-8 md:w-10 md:h-10 text-emerald-400" />
                       </div>
-                      <h3 className="text-2xl font-black text-white">Smart Insights</h3>
-                      <p className="text-emerald-100/80 font-bold max-w-md">
-                        Current data shows <span className="text-emerald-400">{selectedTrendCrop}</span> is trending with a modal price of <span className="text-white text-2xl font-black">₹{bestPrices[selectedTrendCrop] || 'N/A'} / Quintal</span>.
+                      <h3 className="text-2xl md:text-3xl font-black text-white">Smart Insights</h3>
+                      <p className="text-emerald-100/80 font-bold text-sm md:text-lg leading-relaxed px-2 md:px-4">
+                        Current data shows <span className="text-emerald-400 underline decoration-emerald-400/30 underline-offset-8 font-black">{selectedTrendCrop}</span> is trending with a modal price of <span className="text-white text-2xl md:text-3xl font-black block mt-2">₹{bestPrices[selectedTrendCrop] || 'N/A'}</span>
                       </p>
-                      <div className="flex items-center gap-2 justify-center text-emerald-300 text-[10px] font-black uppercase tracking-widest">
-                        <Info className="w-3 h-3" />
-                        <span>1 Quintal = 100 Kilograms</span>
+                      <div className="flex items-center gap-3 justify-center text-emerald-300 text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] pt-2 md:pt-4">
+                        <Info className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                        <span>Standard: 1 Quintal = 100 KG</span>
                       </div>
                     </div>
                   </div>
@@ -790,17 +881,17 @@ const Mandi: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="overflow-x-auto scrollbar-hide">
-              <div className="min-w-[800px]">
+            <div className="overflow-x-auto scrollbar-hide border-x border-emerald-50 md:border-none">
+              <div className="min-w-[800px] md:min-w-full">
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 backdrop-blur-xl bg-[#064e3b]">
                     <tr className="text-white">
-                      <th className="px-6 py-6 text-[13px] font-black uppercase tracking-widest border-b border-white/10">State</th>
-                      <th className="px-6 py-6 text-[13px] font-black uppercase tracking-widest border-b border-white/10">APMC</th>
-                      <th className="px-6 py-6 text-[13px] font-black uppercase tracking-widest border-b border-white/10">Commodity</th>
-                      <th className="px-6 py-6 text-[13px] font-black uppercase tracking-widest border-b border-white/10">Min Price (₹/Quintal)</th>
-                      <th className="px-6 py-6 text-[13px] font-black uppercase tracking-widest border-b border-white/10">Max Price (₹/Quintal)</th>
-                      <th className="px-6 py-6 text-[13px] font-black uppercase tracking-widest border-b border-white/10">Modal Price (₹/Quintal)</th>
+                      <th className="px-4 md:px-6 py-4 md:py-6 text-[11px] md:text-[13px] font-black uppercase tracking-widest border-b border-white/10">State</th>
+                      <th className="px-4 md:px-6 py-4 md:py-6 text-[11px] md:text-[13px] font-black uppercase tracking-widest border-b border-white/10">APMC</th>
+                      <th className="px-4 md:px-6 py-4 md:py-6 text-[11px] md:text-[13px] font-black uppercase tracking-widest border-b border-white/10">Commodity</th>
+                      <th className="px-4 md:px-6 py-4 md:py-6 text-[11px] md:text-[13px] font-black uppercase tracking-widest border-b border-white/10">Min Price</th>
+                      <th className="px-4 md:px-6 py-4 md:py-6 text-[11px] md:text-[13px] font-black uppercase tracking-widest border-b border-white/10">Max Price</th>
+                      <th className="px-4 md:px-6 py-4 md:py-6 text-[11px] md:text-[13px] font-black uppercase tracking-widest border-b border-white/10">Modal Price</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-emerald-50">
@@ -819,21 +910,29 @@ const Mandi: React.FC = () => {
                         )
                         .map((item, idx) => (
                         <tr key={idx} className={`transition-all group cursor-default ${idx % 2 === 0 ? 'bg-white' : 'bg-emerald-50/20'} hover:bg-emerald-50/80`}>
-                          <td className="px-6 py-8 text-[17px] font-medium text-[#1a1a1a]">{item.state}</td>
-                          <td className="px-6 py-8 text-[17px] font-medium text-[#1a1a1a]">{item.market}</td>
-                          <td className="px-6 py-8">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-sm border border-emerald-100">
-                                <img src={getCropImage(item.commodity)} className="w-full h-full object-cover" />
+                          <td className="px-4 md:px-6 py-6 md:py-8 text-sm md:text-[17px] font-medium text-[#1a1a1a]">{item.state}</td>
+                          <td className="px-4 md:px-6 py-6 md:py-8 text-sm md:text-[17px] font-medium text-[#1a1a1a]">{item.market}</td>
+                          <td className="px-4 md:px-6 py-6 md:py-8">
+                            <div className="flex items-center gap-3 md:gap-4">
+                              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-emerald-100 flex items-center justify-center bg-gray-50 flex-shrink-0">
+                                {imageErrors[`${item.commodity}-${idx}`] ? (
+                                  <Sprout className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" />
+                                ) : (
+                                  <img 
+                                    src={getCropImage(item.commodity)} 
+                                    className="w-full h-full object-cover" 
+                                    onError={() => setImageErrors(prev => ({ ...prev, [`${item.commodity}-${idx}`]: true }))}
+                                  />
+                                )}
                               </div>
-                              <span className="text-[17px] font-medium text-[#1a1a1a]">{item.commodity}</span>
+                              <span className="text-sm md:text-[17px] font-medium text-[#1a1a1a]">{item.commodity}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-8 text-[17px] font-medium text-emerald-600">₹{item.min_price} / Quintal</td>
-                          <td className="px-6 py-8 text-[17px] font-medium text-[#1a1a1a]">₹{item.max_price} / Quintal</td>
-                          <td className="px-6 py-8">
-                            <div className="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-2xl shadow-md border border-emerald-700">
-                              <span className="text-xl font-black tracking-tight">₹{item.modal_price} / Quintal</span>
+                          <td className="px-4 md:px-6 py-6 md:py-8 text-sm md:text-[17px] font-medium text-emerald-600">₹{item.min_price}</td>
+                          <td className="px-4 md:px-6 py-6 md:py-8 text-sm md:text-[17px] font-medium text-[#1a1a1a]">₹{item.max_price}</td>
+                          <td className="px-4 md:px-6 py-6 md:py-8">
+                            <div className="inline-flex items-center px-4 md:px-6 py-2 md:py-3 bg-emerald-600 text-white rounded-xl md:rounded-2xl shadow-md border border-emerald-700">
+                              <span className="text-sm md:text-xl font-black tracking-tight">₹{item.modal_price}</span>
                             </div>
                           </td>
                         </tr>
@@ -856,6 +955,25 @@ const Mandi: React.FC = () => {
           </motion.div>
         )}
         </div>
+
+        {/* Live Status Note */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 border-l-4 border-amber-500 p-5 mt-12 mb-6 shadow-md rounded-r-xl flex items-start gap-4"
+        >
+          <div className="mt-1 flex-shrink-0">
+            <div className="relative flex items-center justify-center">
+              <Radio className="w-5 h-5 text-amber-500 animate-pulse" />
+              <div className="absolute w-5 h-5 bg-amber-400 rounded-full animate-ping opacity-20"></div>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-gray-900 text-base leading-relaxed">
+              <span className="font-black text-red-700 uppercase tracking-tight">IMPORTANT NOTE:</span> This dashboard is connected to a <span className="font-bold">Real-Time Government Feed</span>. If data for a specific market or commodity is limited, it is because <span className="font-bold">local market officials</span> are currently in the process of syncing today’s session records. Full updates are typically completed by <span className="font-bold">government personnel</span> as the day progresses.
+            </p>
+          </div>
+        </motion.div>
 
         {/* Footer Info */}
         <div className="mt-20 flex flex-col items-center gap-6">
