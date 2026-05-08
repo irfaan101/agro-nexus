@@ -21,7 +21,9 @@ import {
   Search,
   AlertCircle,
   Loader2,
-  Bot
+  Bot,
+  FileText,
+  Download
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useWeather } from '../hooks/useWeather';
@@ -167,6 +169,40 @@ const Home: React.FC = () => {
             <p className="text-lg md:text-2xl text-white/90 font-medium max-w-3xl mx-auto leading-relaxed px-4">
               Agro-Nexus combines AI vision, real-time market data, and hyper-local weather to empower your farm.
             </p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-6 sm:gap-4 px-4 max-w-lg mx-auto sm:max-w-none"
+            >
+              <div className="flex flex-col items-center w-full sm:w-auto">
+                <a
+                  href="https://doi.org/10.5281/zenodo.20033108"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:scale-105 hover:bg-indigo-700 transition-all active:scale-95 active:opacity-90 w-full sm:w-auto"
+                >
+                  <FileText className="w-5 h-5 group-hover:rotate-6 transition-transform" />
+                  View Research Paper
+                </a>
+                <span className="mt-2 text-[10px] text-white/50 font-medium italic">
+                  DOI: 10.5281/zenodo.20033108
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center w-full sm:w-auto pb-6 sm:pb-0">
+                <a
+                  href="/AgroNexus_Official_v1.0.apk"
+                  download
+                  className="group flex items-center justify-center gap-3 px-8 py-4 bg-emerald-600 border border-emerald-500 text-white rounded-full font-bold shadow-lg hover:scale-105 hover:bg-emerald-700 transition-all active:scale-95 active:opacity-90 w-full sm:w-auto"
+                >
+                  <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                  Download APK
+                </a>
+              </div>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0 }}

@@ -5,9 +5,12 @@ import {
   Linkedin, 
   Instagram, 
   Github, 
+  Facebook,
   Languages,
   Heart,
-  ExternalLink
+  ExternalLink,
+  FileText,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -17,6 +20,7 @@ interface Developer {
   linkedin: string;
   instagram: string;
   github: string;
+  facebook?: string;
 }
 
 const developers: Developer[] = [
@@ -32,7 +36,8 @@ const developers: Developer[] = [
     name: 'Irfaan Mansoori',
     linkedin: 'https://www.linkedin.com/in/irfaan-sta/',
     instagram: 'https://www.instagram.com/irfaan_mansoori_100?igsh=MXR5bzB0NzZzcGlhag',
-    github: 'https://github.com/irfaan101'
+    github: 'https://github.com/irfaan101',
+    facebook: 'https://www.facebook.com/profile.php?id=100079849844352'
   },
   {
     id: 'jeet',
@@ -62,7 +67,7 @@ const Footer: React.FC = () => {
     <footer ref={footerRef} className="bg-emerald-950 text-white pt-40 pb-8 px-6 md:px-12 relative overflow-visible">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         {/* Branding */}
-        <div className="space-y-6">
+        <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
               <Leaf className="w-6 h-6 text-white" />
@@ -72,6 +77,27 @@ const Footer: React.FC = () => {
           <p className="text-gray-300 font-medium leading-relaxed max-w-xs">
             Empowering Indian farmers with real-time AI insights for a sustainable and prosperous future.
           </p>
+          
+          {/* Key Links under Branding */}
+          <div className="flex flex-col gap-2 mt-6">
+            <a 
+              href="https://doi.org/10.5281/zenodo.20033108" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white hover:text-lime-300 transition-all font-semibold text-base flex items-center gap-3 justify-center md:justify-start group/link py-2 px-1 active:scale-95 active:opacity-80"
+            >
+              <FileText className="w-5 h-5 text-lime-400 group-hover/link:scale-110 transition-transform flex-shrink-0" />
+              <span className="hover:underline decoration-lime-400 underline-offset-4">Academic Publication</span>
+            </a>
+            <a 
+              href="/AgroNexus_Official_v1.0.apk" 
+              download
+              className="text-white hover:text-lime-300 transition-all font-semibold text-base flex items-center gap-3 justify-center md:justify-start group/link py-2 px-1 active:scale-95 active:opacity-80"
+            >
+              <Download className="w-5 h-5 text-lime-400 group-hover/link:scale-110 transition-transform flex-shrink-0" />
+              <span className="hover:underline decoration-lime-400 underline-offset-4">Official Android App</span>
+            </a>
+          </div>
         </div>
 
         {/* Quick Links */}
@@ -189,6 +215,17 @@ const Footer: React.FC = () => {
                             <Github className="w-4 h-4 text-emerald-400 transition-colors group-hover/link:text-white group-hover/link:scale-110" />
                             GitHub
                           </a>
+                          {dev.facebook && (
+                            <a 
+                              href={dev.facebook} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all text-sm font-bold text-gray-200 hover:text-white group/link"
+                            >
+                              <Facebook className="w-4 h-4 text-emerald-400 transition-colors group-hover/link:text-[#1877F2] group-hover/link:scale-110" />
+                              Facebook
+                            </a>
+                          )}
                         </div>
                         {/* Arrow */}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-emerald-900" />
