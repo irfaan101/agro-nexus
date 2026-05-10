@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.irfaan.agronexus",
+        "sha256_cert_fingerprints": ["0D:A9:35:EB:93:05:EC:1F:B6:32:AD:C8:EA:EA:92:6A:71:98:66:D5:33:41:17:9B:4C:E7:ED:4D:C9:5B:D1:33"]
+      }
+    }]
