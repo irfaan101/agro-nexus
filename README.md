@@ -1,4 +1,18 @@
 # Agro-Nexus 🌾
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" />
+  <img src="https://img.shields.io/badge/TypeScript-TS-blue?style=for-the-badge&logo=typescript" />
+  <img src="https://img.shields.io/badge/Flask-Backend-black?style=for-the-badge&logo=flask" />
+  <img src="https://img.shields.io/badge/Firebase-Auth-orange?style=for-the-badge&logo=firebase" />
+  <img src="https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel" />
+  <img src="https://img.shields.io/badge/Python-Flask-blue?style=for-the-badge&logo=python" />
+  <img src="https://img.shields.io/badge/Gemini-AI-purple?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/PWA-Enabled-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Firestore-Database-yellow?style=for-the-badge&logo=firebase" />
+  <img src="https://img.shields.io/badge/APIs-Integrated-red?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+</p>
+
 **Agro-Nexus: An AI-Driven Digital Ecosystem for Crop Disease Detection and Mandi Analytics**
 
 *(Also documented as: Agro-Nexus: AI-Powered Crop Disease Detection and Mandi Analytics System for Academic Records)*
@@ -18,9 +32,7 @@ Agro-Nexus is a cutting-edge solution designed to transform traditional farming 
 ## 📺 Project Demonstration
 Here is a quick high-level technical preview of the Agro-Nexus digital ecosystem in action:
 
-[https://github.com/irfaan101/agro-nexus/Agro-Nexus_Demonstration_Video.mp4](https://drive.google.com/file/d/12m1EZaf8cQAZu3eFD13wndFvjLSQ6Kisr/view?usp=drive_link)
-
-
+https://github.com/user-attachments/assets/bc6258d8-bd4b-4d86-9870-59676dc5a6c4
 
 > **📢 Note:** *Please watch the full system walkthrough above. A comprehensive deep-dive tutorial explaining every core module and architectural pattern is Coming Soon on YouTube!*
 
@@ -74,9 +86,8 @@ This project is open-source and licensed under the **MIT License**. For deep arc
 If you utilize this source code, system architecture, or core research methodology in an academic work or project, please provide appropriate credit by citing our [published paper.](https://doi.org/10.5281/zenodo.20033108)
 
 ```text
-Mansoori, I., Lakhera, J., & Vishwakarma, H. (2026). Agro-Nexus: An AI-Driven Digital Ecosystem for Crop Disease Detection and Mandi Analytics. Zenodo. DOI: [https://doi.org/10.5281/zenodo.20033108](https://doi.org/10.5281/zenodo.20033108)
+Mansoori, I., Lakhera, J., & Vishwakarma, H. (2026). Agro-Nexus: An AI-Driven Digital Ecosystem for Crop Disease Detection and Mandi Analytics(1.0.0). Zenodo. DOI: [https://doi.org/10.5281/zenodo.20033108](https://doi.org/10.5281/zenodo.20033108)
 ```
-
 
 
 ---
