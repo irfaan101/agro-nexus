@@ -25,11 +25,20 @@ interface Developer {
 
 const developers: Developer[] = [
   {
+    id: 'ashutosh',
+    name: 'Ashutosh Tripathi',
+    linkedin: 'https://www.linkedin.com/in/ashutosh-tripathi-5ba361381/',
+    instagram: 'https://www.instagram.com/ashutosh_tripathi__07?igsh=aTFyb3B5cWh1YmNv',
+    github: 'https://github.com/ashutoshtripathi837',
+    facebook: 'https://www.facebook.com/share/177G4gUrjH/'
+  },
+  {
     id: 'harshit',
     name: 'Harshit Vishwakarma',
     linkedin: 'https://www.linkedin.com/in/harshit-vishwakarma-5948b833b/',
     instagram: 'https://www.instagram.com/itx__prince__001?igsh=MWkzdzloemN5am9qaw',
-    github: 'https://github.com/'
+    github: 'https://github.com/',
+    facebook: 'https://www.facebook.com/harshit.vishwakarma.98892615'
   },
   {
     id: 'irfaan',
@@ -44,7 +53,8 @@ const developers: Developer[] = [
     name: 'Jeet Lakhera',
     linkedin: 'https://www.linkedin.com/in/jeet-lakhera-6685a133a',
     instagram: 'https://www.instagram.com/krishna__10001?igsh=eDE4eGY2N2Z6OHRy',
-    github: 'https://github.com/Jeet877'
+    github: 'https://github.com/Jeet877',
+    facebook: 'https://www.facebook.com/'
   }
 ];
 
@@ -233,7 +243,7 @@ const Footer: React.FC = () => {
                     )}
                   </AnimatePresence>
                 </div>
-                {index < developers.length - 1 && <span className="text-gray-500 text-sm font-medium">,</span>}
+                {index < developers.length - 1 && <span className="text-gray-500 text-sm font-medium">, </span>}
                 {index === developers.length - 2 && <span className="text-gray-500 text-sm font-medium ml-1">and</span>}
               </React.Fragment>
             ))}
