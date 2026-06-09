@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+title: "Agro-Nexus: An AI-Driven Digital Ecosystem for Crop Disease Detection and Mandi Analytics"
+message: "If you use this software, please cite it using the metadata below."
+
+type: software
+
+authors:
+  - family-names: Mansoori
+    given-names: Irfaan
+  - family-names: Lakhera
+    given-names: Jeet
+  - family-names: Vishwakarma
+    given-names: Harshit
+
+version: "1.0.0"
+
+doi: 10.5281/zenodo.20033108
+
+license: MIT
+
+repository-code: "https://github.com/irfaan101/agro-nexus"
+
+url: "https://agro-nexus-iota.vercel.app"
+
+abstract: >
+  Agro-Nexus is an AI-driven digital ecosystem for crop disease
+  detection, mandi analytics, and weather intelligence using
+  Google Gemini 1.5 Flash, React, Flask, Firebase, and Open Government Data APIs.
+
+keywords:
+  - Agriculture
+  - Artificial Intelligence
+  - Crop Disease Detection
+  - Precision Agriculture
+  - Smart Farming
+  - Gemini AI
+  - Mandi Analytics
+  - React
+  - Flask
+  - Firebase
+  - Open Government Data
+  - Weather Intelligence

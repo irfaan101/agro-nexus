@@ -80,13 +80,13 @@ This project is a collaborative undergraduate research effort:
 ---
 
 ## 📄 License & Citation
-This project is open-source and licensed under the **MIT License**. For deep architectural details and scientific validation, see the official academic reference in the [LICENSE](LICENSE) file.
+This project is open-source and licensed under the **MIT License**. For deep architectural details and scientific validation, see our published research paper on [Zenodo.](https://doi.org/10.5281/zenodo.20033108)
 
 ### 📚 How to Cite
-If you utilize this source code, system architecture, or core research methodology in an academic work or project, please provide appropriate credit by citing our [published paper.](https://doi.org/10.5281/zenodo.20033108)
+The Agro-Nexus research work, methodology, and academic documentation are published separately on Zenodo. If you utilize this source code, system architecture, or core research methodology in an academic work or project, please provide appropriate credit by citing our [published paper.](https://doi.org/10.5281/zenodo.20033108)
 
 ```text
-Mansoori, I., Lakhera, J., & Vishwakarma, H. (2026). Agro-Nexus: An AI-Driven Digital Ecosystem for Crop Disease Detection and Mandi Analytics(1.0.0). Zenodo. DOI: [https://doi.org/10.5281/zenodo.20033108](https://doi.org/10.5281/zenodo.20033108)
+Mansoori, I., Lakhera, J., & Vishwakarma, H. (2026). Agro-Nexus: An AI-Driven Digital Ecosystem for Crop Disease Detection and Mandi Analytics (1.0.0). Zenodo. DOI: https://doi.org/10.5281/zenodo.20033108
 ```
 
 
