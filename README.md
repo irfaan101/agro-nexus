@@ -75,7 +75,7 @@ This project is a collaborative undergraduate research effort:
 * **Jeet Lakhera**
   * [LinkedIn](https://www.linkedin.com/in/jeet-lakhera-6685a133a) | [GitHub](https://github.com/Jeet877)
 * **Harshit Vishwakarma**
-  * [LinkedIn](https://www.linkedin.com/in/harshit-vishwakarma-5948b833b/) | [GitHub: Comming Soon]
+  * [LinkedIn](https://www.linkedin.com/in/harshit-vishwakarma-5948b833b/) | [GitHub](https://github.com/Harshit19021)
 
 ---
 
